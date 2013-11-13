@@ -26,7 +26,6 @@ user@home:~/naev/$ dataranges
 
 # Standard library imports.
 import math
-import re
 
 # Local imports.
 from dataloader import datafiles
@@ -249,11 +248,12 @@ def main():
                 world_classes[asset.world_class] += 1
             else:
                 world_classes.update({asset.world_class: 1,})
-#            if asset.world_class.isalpha and asset.gfx.space[0] == asset.world_class:
-#                if asset.world_class in class_matches:
-#                    class_matches[asset.world_class] += 1
-#                else:
-#                    class_matches.update({asset.world_class: 1,})
+            if asset.world_class.isalpha:
+                if asset.gfx['space'][0] == asset.world_class:
+                    if asset.world_class in class_matches:
+                        class_matches[asset.world_class] += 1
+                    else:
+                        class_matches.update({asset.world_class: 1,})
 
             total_pops.append(asset.population)
             if asset.population > 0:
@@ -288,19 +288,28 @@ def main():
     print('The smallest population (greater than zero)',
           '({}) is in {}.'.format(lo_pop, liststr(least_pop)))
     print()
-    station_type = ''
     for world_class in sorted(world_classes.keys()):
-        if world_class in class_matches:
-            print('There are {} class {} plants (of which {} have matching space GFX).'
-                  .format(world_classes[world_class], world_class, world_class))
-        else:
+        asset_type = 'unknown'
+        station_type = 'unknown'    
+        extra_data = ''
+
+        if world_class in ['0', '1', '2', '3']:
+            # would prefer to pull the following data from naev/src/space.h
+            asset_type = 'station'
             if world_class == '0': station_type = 'civilian'
             elif world_class == '1': station_type = 'military'
             elif world_class == '2': station_type = 'interfactional'
             elif world_class == '3': station_type = 'robotic'
-            else: station_type = 'unknown'
-            print('There are {} class {} ({}) stations.'
-                  .format(world_classes[world_class], world_class, station_type))
+            extra_data = ' (' + station_type + ')'
+        elif world_class in class_matches:
+            asset_type = 'planet'
+            extra_data = ' (' + repr(math.ceil((world_classes[world_class] - class_matches[world_class]) / world_classes[world_class] * 100)) + '% don\'t match their space GFX)'
+        else:
+            asset_type = 'planet'
+            extra_data = ' (100% don\'t match their space GFX)'
+
+        print('There are {} class {} {}s{}.'
+              .format(world_classes[world_class], world_class, asset_type, extra_data))
     print()
 
 if __name__ == '__main__':
