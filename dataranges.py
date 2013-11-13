@@ -5,7 +5,7 @@
 Run this script from the root directory of your Naev source tree. It
 reads the XML files in dat/ssys/ and dat/assets/ and gives details of
 the ranges of values for certain statistics. Example usage:
-user@home:~/naev/$ dataranges
+    user@home:~/naev/$ dataranges
 
 '''
 
