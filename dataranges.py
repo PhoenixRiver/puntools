@@ -3,13 +3,13 @@
 '''Data range checker for Naev.
 
 Run this script from the root directory of your Naev source tree. It
-reads the XML files in dat/ssys/ and gives details of the ranges of
-values for certain key statistics. Example usage:
-    user@home:~/naev/$ dataranges
+reads the XML files in dat/ssys/ and dat/assets/ and gives details of
+the ranges of values for certain statistics. Example usage:
+user@home:~/naev/$ dataranges
 
 '''
 
-# Copyright © 2012 Tim Pederick.
+# Copyright © 2012 Tim Pederick, 2013 Johann Bryant.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,18 +18,18 @@ values for certain key statistics. Example usage:
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Standard library imports.
 import math
 
 # Local imports.
 from dataloader import datafiles
-from naevdata import SSystem
+from naevdata import SSystem, Asset
 
 def stats(iterable):
     '''Find the mean and standard deviation of a data set.'''
@@ -47,6 +47,12 @@ def liststr(items):
     else:
         return (', '.join(str(item) for item in items[:-1]) +
                 ' and ' + str(items[-1]))
+
+def hypot(x, y):
+    '''Find the straightline distance of an asset in space.'''
+    length = math.sqrt((x*x)+(y*y))
+
+    return length
 
 def main():
     ssystems = []
@@ -133,6 +139,82 @@ def main():
           '({}) are found in {}.'.format(most_stars, liststr(most_stars_at)))
     print('The least starry skies',
           '({}) are found in {}.'.format(least_stars, liststr(least_stars_at)))
+    print()
+
+    assets = []
+    for assetsfile in datafiles('Assets'):
+        # Parse each XML file into a Asset object.
+        assets.append(Asset(assetsfile))
+
+    furthest, hi_orbit, orbits = [], 0.0, []
+    nearest, lo_orbit = [], float('Inf')
+
+    best_hidden, hi_hide, hides = [], 0.0, []
+    worst_hidden, lo_hide = [], float('Inf')
+    
+    most_pop, hi_pop, pops = [], 0.0, []
+    least_pop, lo_pop, total_pops = [], float('Inf'), []
+    
+    for asset in assets:
+        if not asset.virtual:
+            orbit = hypot(asset.pos.x, asset.pos.y)
+            orbits.append(orbit)
+            if orbit > hi_orbit:
+                furthest, hi_orbit = [asset.name], orbit
+            elif orbit == hi_orbit:
+                furthest.append(asset.name)
+            # ...else this isn't a candidate for the biggest orbit.
+            if orbit < lo_orbit:
+                nearest, lo_orbit = [asset.name], orbit
+            elif orbit == lo_orbit:
+                nearest.append(asset.name)
+            # ...else this isn't a candidate for the smallest orbit.
+
+            hides.append(asset.hide)
+            if asset.hide > hi_hide:
+                best_hidden, hi_hide = [asset.name], asset.hide
+            elif asset.hide == hi_hide:
+                best_hidden.append(asset.name)
+            # ...else this isn't a candidate for the biggest population.
+            if asset.hide < lo_hide:
+                worst_hidden, lo_hide = [asset.name], asset.hide
+            elif asset.hide == lo_hide:
+                worst_hidden.append(asset.name)
+            # ...else this isn't a candidate for the smallest population.
+
+            total_pops.append(asset.population)
+            if asset.population > 0:
+                pops.append(asset.population)
+                if asset.population > hi_pop:
+                    most_pop, hi_pop = [asset.name], asset.population
+                elif asset.population == hi_pop:
+                    most_pop.append(asset.name)
+                # ...else this isn't a candidate for the biggest population.
+                if asset.population < lo_pop:
+                    least_pop, lo_pop = [asset.name], asset.population
+                elif asset.population == lo_pop:
+                    least_pop.append(asset.name)
+                # ...else this isn't a candidate for the smallest population.
+
+    print('Orbit: μ={}, σ={}'.format(*stats(orbits)))
+    print('The biggest orbit',
+          '({}) is {}.'.format(hi_orbit, liststr(furthest)))
+    print('The smallest orbit',
+          '({}) is {}.'.format(lo_orbit, liststr(nearest)))
+    print()
+    print('Difficulty in sensing: μ={}, σ={}'.format(*stats(hides)))
+    print('The best hidden',
+          '({}) is {}.'.format(hi_hide, liststr(best_hidden)))
+    print('The worst hidden',
+          '({}) is {}.'.format(lo_hide, liststr(worst_hidden)))
+    print()
+    print('Population (everywhere): μ={}, σ={}'.format(*stats(total_pops)))
+    print('Population (inhabitted only): μ={}, σ={}'.format(*stats(pops)))
+    print('The biggest population',
+          '({}) is in {}.'.format(hi_pop, liststr(most_pop)))
+    print('The smallest population (greater than zero)',
+          '({}) is in {}.'.format(lo_pop, liststr(least_pop)))
+    print()
 
 if __name__ == '__main__':
     main()
