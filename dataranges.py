@@ -26,6 +26,7 @@ user@home:~/naev/$ dataranges
 
 # Standard library imports.
 import math
+import re
 
 # Local imports.
 from dataloader import datafiles
@@ -69,6 +70,14 @@ def main():
 
     most_stars_at, most_stars, stars = [], 0, []
     least_stars_at, least_stars = [], float('Inf')
+
+    most_jumps_at, most_jumps, jumps = [], 0, []
+    least_jumps_at, least_jumps = [], float('Inf')
+    zero_jumps_at = []
+
+    most_planets_at, most_planets, planets = [], 0, []
+    least_planets_at, least_planets = [], float('Inf')
+    zero_planets_at = []
 
     for ssys in ssystems:
         neb_densities.append(ssys.nebula.density)
@@ -116,6 +125,43 @@ def main():
             least_stars_at.append(ssys.name)
         # ...else this isn't a candidate for the least starry system.
 
+        jump_num = len(ssys.jumps)
+        jumps.append(jump_num)
+        if jump_num > most_jumps:
+            most_jumps_at, most_jumps = [ssys.name], jump_num
+        elif jump_num == most_jumps:
+            most_jumps_at.append(ssys.name)
+        # ...else this isn't a candidate for the system with the most jumps.
+        if jump_num == 0:
+            zero_jumps_at.append(ssys.name)
+        # ...else this isn't a system with zero jumps.
+        else:
+            if jump_num < least_jumps:
+                least_jumps_at, least_jumps = [ssys.name], jump_num
+            elif jump_num == least_jumps:
+                least_jumps_at.append(ssys.name)
+        # ...else this isn't a candidate for the system with the least jumps.
+
+        planet_num = 0
+        for asset in ssys.assets:
+            if not asset.__contains__('Virtual'):
+                planet_num = planet_num + 1
+        planets.append(planet_num)
+        if planet_num > most_planets:
+            most_planets_at, most_planets = [ssys.name], planet_num
+        elif planet_num == most_planets:
+            most_planets_at.append(ssys.name)
+        # ...else this isn't a candidate for the system with the most planets.
+        if planet_num == 0:
+            zero_planets_at.append(ssys.name)
+        # ...else this isn't a system with zero planets.
+        else:
+            if planet_num < least_planets:
+                least_planets_at, least_planets = [ssys.name], planet_num
+            elif planet_num == least_planets:
+                least_planets_at.append(ssys.name)
+        # ...else this isn't a candidate for the system with the least planets.
+
     print('Radius: μ={}, σ={}'.format(*stats(radii)))
     print('The largest system radius',
           '({}) is found in {}.'.format(hi_radius, liststr(largest_system)))
@@ -139,6 +185,20 @@ def main():
           '({}) are found in {}.'.format(most_stars, liststr(most_stars_at)))
     print('The least starry skies',
           '({}) are found in {}.'.format(least_stars, liststr(least_stars_at)))
+    print()
+    print('Jumps: μ={}, σ={}'.format(*stats(jumps)))
+    print('The most jump points',
+          '({}) in {}.'.format(most_jumps, liststr(most_jumps_at)))
+    print('The least jump points',
+          '({}) in {}.'.format(least_jumps, liststr(least_jumps_at)))
+    print('Zero jump points in {}.'.format(liststr(zero_jumps_at)))
+    print()
+    print('Planets: μ={}, σ={}'.format(*stats(planets)))
+    print('The most planets',
+          '({}) in {}.'.format(most_planets, liststr(most_planets_at)))
+    print('The least planets',
+          '({}) in {}.'.format(least_planets, liststr(least_planets_at)))
+    print('Zero planets in {} systems.'.format(len(zero_planets_at)))
     print()
 
     assets = []
@@ -175,12 +235,12 @@ def main():
                 best_hidden, hi_hide = [asset.name], asset.hide
             elif asset.hide == hi_hide:
                 best_hidden.append(asset.name)
-            # ...else this isn't a candidate for the biggest population.
+            # ...else this isn't a candidate for the best hidden.
             if asset.hide < lo_hide:
                 worst_hidden, lo_hide = [asset.name], asset.hide
             elif asset.hide == lo_hide:
                 worst_hidden.append(asset.name)
-            # ...else this isn't a candidate for the smallest population.
+            # ...else this isn't a candidate for the least hidden.
 
             total_pops.append(asset.population)
             if asset.population > 0:
