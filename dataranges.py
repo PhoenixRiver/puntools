@@ -144,8 +144,9 @@ def main():
 
         planet_num = 0
         for asset in ssys.assets:
-            if not asset.__contains__('Virtual'):
+            if not (asset.find('Virtual') + 1):
                 planet_num = planet_num + 1
+        # ...else this asset is Virtual.
         planets.append(planet_num)
         if planet_num > most_planets:
             most_planets_at, most_planets = [ssys.name], planet_num
@@ -214,6 +215,8 @@ def main():
     
     most_pop, hi_pop, pops = [], 0.0, []
     least_pop, lo_pop, total_pops = [], float('Inf'), []
+
+    world_classes, class_matches = dict(), dict()
     
     for asset in assets:
         if not asset.virtual:
@@ -241,6 +244,16 @@ def main():
             elif asset.hide == lo_hide:
                 worst_hidden.append(asset.name)
             # ...else this isn't a candidate for the least hidden.
+
+            if asset.world_class in world_classes:
+                world_classes[asset.world_class] += 1
+            else:
+                world_classes.update({asset.world_class: 1,})
+#            if asset.world_class.isalpha and asset.gfx.space[0] == asset.world_class:
+#                if asset.world_class in class_matches:
+#                    class_matches[asset.world_class] += 1
+#                else:
+#                    class_matches.update({asset.world_class: 1,})
 
             total_pops.append(asset.population)
             if asset.population > 0:
@@ -274,6 +287,20 @@ def main():
           '({}) is in {}.'.format(hi_pop, liststr(most_pop)))
     print('The smallest population (greater than zero)',
           '({}) is in {}.'.format(lo_pop, liststr(least_pop)))
+    print()
+    station_type = ''
+    for world_class in sorted(world_classes.keys()):
+        if world_class in class_matches:
+            print('There are {} class {} plants (of which {} have matching space GFX).'
+                  .format(world_classes[world_class], world_class, world_class))
+        else:
+            if world_class == '0': station_type = 'civilian'
+            elif world_class == '1': station_type = 'military'
+            elif world_class == '2': station_type = 'interfactional'
+            elif world_class == '3': station_type = 'robotic'
+            else: station_type = 'unknown'
+            print('There are {} class {} ({}) stations.'
+                  .format(world_classes[world_class], world_class, station_type))
     print()
 
 if __name__ == '__main__':
