@@ -164,17 +164,17 @@ def main():
 
     print('Radius: μ={}, σ={}'.format(*stats(radii)))
     print('The largest system radius',
-          '({}) is found in {}.'.format(hi_radius, liststr(largest_system)))
+          '({}) can be found in {}.'.format(hi_radius, liststr(largest_system)))
     print('The smallest system radius',
-          '({}) is found in {}.'.format(lo_radius, liststr(smallest_system)))
+          '({}) can be found in {}.'.format(lo_radius, liststr(smallest_system)))
     print()
     print('Nebula density: μ={}, σ={}'.format(*stats(neb_densities)))
-    print('The densest nebula ({}) is in {}.'.format(neb_density,
-                                                     liststr(neb_densest_at)))
+    print('The densest part of the nebula',
+          '({}) can be found in {}.'.format(neb_density, liststr(neb_densest_at)))
     print()
     print('Nebula volatility: μ={}, σ={}'.format(*stats(neb_volatilities)))
-    print('The nebula is at its most volatile',
-          '({}) in {}.'.format(neb_volatility, liststr(neb_worst_at)))
+    print('The most volatile part of the nebula',
+          '({}) can be found in {}.'.format(neb_volatility, liststr(neb_worst_at)))
     print()
     print('Interference: μ={}, σ={}'.format(*stats(interferences)))
     print('Interference is at its peak',
@@ -188,17 +188,17 @@ def main():
     print()
     print('Jumps: μ={}, σ={}'.format(*stats(jumps)))
     print('The most jump points',
-          '({}) in {}.'.format(most_jumps, liststr(most_jumps_at)))
+          '({}) are found in {}.'.format(most_jumps, liststr(most_jumps_at)))
     print('The least jump points',
-          '({}) in {}.'.format(least_jumps, liststr(least_jumps_at)))
-    print('Zero jump points in {}.'.format(liststr(zero_jumps_at)))
+          '({}) are found in {}.'.format(least_jumps, liststr(least_jumps_at)))
+    print('There are zero jump points in {}.'.format(liststr(zero_jumps_at)))
     print()
     print('Planets: μ={}, σ={}'.format(*stats(planets)))
     print('The most planets',
-          '({}) in {}.'.format(most_planets, liststr(most_planets_at)))
+          '({}) can be found in {}.'.format(most_planets, liststr(most_planets_at)))
     print('The least planets',
-          '({}) in {}.'.format(least_planets, liststr(least_planets_at)))
-    print('Zero planets in {} systems.'.format(len(zero_planets_at)))
+          '({}) can be found in {}.'.format(least_planets, liststr(least_planets_at)))
+    print('There are zero planets in {} systems.'.format(len(zero_planets_at)))
     print()
 
     assets = []
@@ -254,6 +254,18 @@ def main():
                         class_matches[asset.world_class] += 1
                     else:
                         class_matches.update({asset.world_class: 1,})
+                elif asset.gfx['space'][5] ==  asset.world_class:
+                    if asset.world_class in class_matches:
+                        class_matches[asset.world_class] += 1
+                    else:
+                        class_matches.update({asset.world_class: 1,})
+                elif asset.gfx['space'][0] == 'a': 
+                    if asset.gfx['space'][9] ==  asset.world_class:
+                        if asset.world_class in class_matches:
+                            class_matches[asset.world_class] += 1
+                        else:
+                            class_matches.update({asset.world_class: 1,})
+            # ...else world class doesn't match the planet, moon or asteroid space graphic
 
             total_pops.append(asset.population)
             if asset.population > 0:
@@ -271,22 +283,22 @@ def main():
 
     print('Orbit: μ={}, σ={}'.format(*stats(orbits)))
     print('The biggest orbit',
-          '({}) is {}.'.format(hi_orbit, liststr(furthest)))
+          '({}) can be found in {}.'.format(hi_orbit, liststr(furthest)))
     print('The smallest orbit',
-          '({}) is {}.'.format(lo_orbit, liststr(nearest)))
+          '({}) can be found in {}.'.format(lo_orbit, liststr(nearest)))
     print()
     print('Difficulty in sensing: μ={}, σ={}'.format(*stats(hides)))
-    print('The best hidden',
-          '({}) is {}.'.format(hi_hide, liststr(best_hidden)))
-    print('The worst hidden',
-          '({}) is {}.'.format(lo_hide, liststr(worst_hidden)))
+    print('The asset(s) most difficult to find',
+          '({}) is or are {}.'.format(hi_hide, liststr(best_hidden)))
+    print('The asset(s) least difficult to find',
+          '({}) is or are {}.'.format(lo_hide, liststr(worst_hidden)))
     print()
     print('Population (everywhere): μ={}, σ={}'.format(*stats(total_pops)))
-    print('Population (inhabitted only): μ={}, σ={}'.format(*stats(pops)))
+    print('Population (inhabitted planets only): μ={}, σ={}'.format(*stats(pops)))
     print('The biggest population',
-          '({}) is in {}.'.format(hi_pop, liststr(most_pop)))
-    print('The smallest population (greater than zero)',
-          '({}) is in {}.'.format(lo_pop, liststr(least_pop)))
+          '({}) can be found on {}.'.format(hi_pop, liststr(most_pop)))
+    print('The smallest (greater than zero) population',
+          '({}) can be found on {}.'.format(lo_pop, liststr(least_pop)))
     print()
     for world_class in sorted(world_classes.keys()):
         asset_type = 'unknown'
@@ -308,8 +320,12 @@ def main():
             asset_type = 'planet'
             extra_data = ' (100% don\'t match their space GFX)'
 
-        print('There are {} class {} {}s{}.'
-              .format(world_classes[world_class], world_class, asset_type, extra_data))
+        if world_classes[world_class] == 1:
+            print('There is 1 class {} {}{}.'
+                  .format(world_class, asset_type, extra_data))
+        else:
+            print('There are {} class {} {}s{}.'
+                  .format(world_classes[world_class], world_class, asset_type, extra_data))
     print()
 
 if __name__ == '__main__':
